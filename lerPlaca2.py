@@ -9,6 +9,9 @@ import base64
 from google.cloud import vision
 import re
 
+# Caminho do arquivo de chave do Google
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "models/chave.json"  # Ajuste esse caminho se necessário
+
 # Inicialização dos modelos YOLO
 model_carros = YOLO('models/yolov8_carros.pt')
 model_placas = YOLO('models/yolov8_placas.pt')
@@ -16,8 +19,10 @@ model_placas = YOLO('models/yolov8_placas.pt')
 # Configuração da aplicação Flask
 app = Flask(__name__)
 CORS(app)
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 FILENAME = 'imagem_atual.jpg'
 
 # Classe para detecção de objetos (carros e placas)
@@ -92,7 +97,7 @@ def processar_imagem(imagem):
                 px1, py1, px2, py2 = map(int, placa)
                 crop_placa = crop_carro[py1:py2, px1:px2]
 
-                # Envia a placa para el Google Vision y procesa el texto detectado
+                # Envia a placa para o Google Vision e processa o texto detectado
                 texto_placa = enviar_para_google_vision(crop_placa)
                 if texto_placa:
                     todas_as_placas.append(texto_placa)
@@ -122,6 +127,7 @@ def upload_file():
     placas_identificadas, imagem_resultado, crops_base64 = processar_imagem(imagem)
     imagem_resultado = cv2.resize(imagem_resultado, (500, 500))
     resultado_path = os.path.join(UPLOAD_FOLDER, 'resultado_' + FILENAME)
+
     cv2.imwrite(resultado_path, imagem_resultado)
 
     if placas_identificadas:
