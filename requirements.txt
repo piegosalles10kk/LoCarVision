@@ -1,0 +1,11 @@
+certifi
+easyocr
+Flask
+flask_cors
+opencv-python
+numpy
+Werkzeug
+ultralytics
+PyYAML
+requests
+google-cloud-vision

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envio de Mídia</title>
+</head>
+<body>
+    <h1>Envio de Mídia</h1>
+    <form id="uploadForm">
+        <label for="apiUrl">Endereço da API:</label>
+        <input type="text" id="apiUrl" name="apiUrl" value="http://127.0.0.1:5000/upload" required>
+        <br><br>
+        <label for="fileInput">Escolha um arquivo (imagem):</label>
+        <input type="file" id="fileInput" name="file" accept="image/*" required>
+        <br><br>
+        <button type="submit">Enviar Arquivo</button>
+    </form>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Impede o envio padrão do formulário
+            const apiUrl = document.getElementById('apiUrl').value; // Obtém a URL da API
+            const formData = new FormData();
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                console.error('Nenhum arquivo selecionado');
+                document.getElementById('result').innerHTML = '<p>Erro: Nenhum arquivo selecionado.</p>';
+                return;
+            }
+            console.log('Arquivo selecionado:', file);
+            formData.append('file', file); // Adiciona o arquivo ao FormData
+            try {
+                console.log('Enviando para a API:', apiUrl);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                console.log('Resposta da API:', result);
+                if (response.ok) {
+                    // Adiciona timestamp à URL da imagem para evitar cache
+                    const timestamp = new Date().getTime();
+                    const imageUrl = `${result.imagem_resultado}?t=${timestamp}`;
+                    // Exibir número de veículos e placas detectadas
+                    let html = `
+                        <p>Número de veículos identificados: ${result.numero_veiculos}</p>
+                        <p>Placas lidas: ${result.placas.length > 0 ? result.placas.join(', ') : 'Nenhuma placa identificada.'}</p>
+                        <img src="${imageUrl}" alt="Imagem processada" width="500" height="500"><br><br>
+                    `;
+                    // Exibir crops das placas
+                    if (result.crops_base64 && result.crops_base64.length > 0) {
+                        html += '<p>Crops das placas:</p>';
+                        for (const cropBase64 of result.crops_base64) {
+                            html += `<img src="data:image/jpeg;base64,${cropBase64}" alt="Placa lida:" width="150">`;
+                        }
+                    }
+                    document.getElementById('result').innerHTML = html;
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Erro ao enviar arquivo: ${result.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro ao enviar arquivo:', error);
+                document.getElementById('result').innerHTML = `<p>Erro ao enviar arquivo: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
