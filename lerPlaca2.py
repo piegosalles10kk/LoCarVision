@@ -145,5 +145,4 @@ def upload_file():
     }), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(host='0.0.0.0', port=5000, debug=True)  # Certifique-se de que o Flask escuta em todas as interfaces
